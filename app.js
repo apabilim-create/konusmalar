@@ -180,13 +180,20 @@ async function fetchAppointments() {
     appointmentsList.innerHTML = '<p class="loading">Takvim yükleniyor...</p>';
     try {
         const response = await fetch('/api/calendar/events');
-        if (!response.ok) throw new Error('API Hatası');
+        const data = await response.json().catch(() => null);
         
-        const events = await response.json();
-        renderAppointments(events);
+        if (!response.ok) {
+            throw new Error(data && data.details ? data.details : 'Sunucu Hatası');
+        }
+        
+        renderAppointments(data);
     } catch (error) {
         console.error('Randevu getirme hatası:', error);
-        appointmentsList.innerHTML = '<p style="color:red;">Randevular yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
+        appointmentsList.innerHTML = `<p style="color:red; padding:15px; border:1px solid red; border-radius:5px;">
+            <strong>Hata Oluştu:</strong> ${error.message}
+            <br><br>
+            <em>Not: "Not Found" hatası alıyorsanız, takviminizi Service Account ile paylaşmamış olabilirsiniz.</em>
+        </p>`;
     }
 }
 
