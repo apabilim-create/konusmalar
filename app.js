@@ -61,11 +61,16 @@ navRandevular.addEventListener('click', () => {
 // ==========================================
 
 let allConversations = [];
+let currentActiveConversationTitle = null; // Aktif konuşmayı takip etmek için
 
 async function fetchConversations() {
     if (!supabaseClient) return;
     
-    listContainer.innerHTML = '<p class="loading">Veriler yükleniyor...</p>';
+    // Yükleniyor yazısını sadece ilk yüklemede göster (canlı güncellemede ekranı titretmemek için)
+    if (allConversations.length === 0) {
+        listContainer.innerHTML = '<p class="loading">Veriler yükleniyor...</p>';
+    }
+    
     try {
         const { data, error } = await supabaseClient
             .from('konusmalar')
@@ -105,6 +110,9 @@ function renderList() {
     Object.keys(grouped).forEach(key => {
         const btn = document.createElement('button');
         btn.className = 'conversation-btn';
+        if (currentActiveConversationTitle === key) {
+            btn.classList.add('active'); // Aktif olanı işaretle
+        }
         btn.innerHTML = `<span>${key}</span><span class="btn-icon">➔</span>`;
         btn.onclick = () => {
             document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
@@ -113,9 +121,16 @@ function renderList() {
         };
         listContainer.appendChild(btn);
     });
+
+    // Eğer açık bir konuşma varsa ve yeni mesaj geldiyse o ekranı da güncelle
+    if (currentActiveConversationTitle && grouped[currentActiveConversationTitle]) {
+        showDetail(currentActiveConversationTitle, grouped[currentActiveConversationTitle]);
+    }
 }
 
 function showDetail(title, messages) {
+    currentActiveConversationTitle = title; // Açık olan konuşmayı kaydet
+
     if (window.innerWidth <= 768) {
         listSection.classList.add('mobile-hidden');
         detailSection.classList.add('mobile-active');
@@ -143,10 +158,12 @@ function showDetail(title, messages) {
             detailContainer.appendChild(div);
         }
     });
+    // Her zaman en alta kaydır
     detailContainer.scrollTop = detailContainer.scrollHeight;
 }
 
 backBtn.addEventListener('click', () => {
+    currentActiveConversationTitle = null; // Geri dönüldüğünde aktif konuşmayı temizle
     detailSection.classList.remove('mobile-active');
     listSection.classList.remove('mobile-hidden');
     document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
