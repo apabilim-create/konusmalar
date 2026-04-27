@@ -146,4 +146,136 @@ backBtn.addEventListener('click', () => {
     document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
 });
 
-window.addEventListener('DOMContentLoaded', fetchConversations);
+// ==========================================
+// GOOGLE CALENDAR (RANDEVU) İŞLEMLERİ
+// ==========================================
+
+const btnShowAddForm = document.getElementById('btn-show-add-form');
+const addAppointmentForm = document.getElementById('add-appointment-form');
+const btnCancelAppointment = document.getElementById('btn-cancel-appointment');
+const btnSaveAppointment = document.getElementById('btn-save-appointment');
+const appointmentsList = document.getElementById('appointments-list');
+const aptMsg = document.getElementById('apt-msg');
+
+// Formu Göster/Gizle
+btnShowAddForm.addEventListener('click', () => {
+    addAppointmentForm.classList.remove('hidden-form');
+});
+
+btnCancelAppointment.addEventListener('click', () => {
+    addAppointmentForm.classList.add('hidden-form');
+    clearAptForm();
+});
+
+function clearAptForm() {
+    document.getElementById('apt-summary').value = '';
+    document.getElementById('apt-start').value = '';
+    document.getElementById('apt-end').value = '';
+    document.getElementById('apt-desc').value = '';
+    aptMsg.innerHTML = '';
+}
+
+// Randevuları Getir
+async function fetchAppointments() {
+    appointmentsList.innerHTML = '<p class="loading">Takvim yükleniyor...</p>';
+    try {
+        const response = await fetch('/api/calendar/events');
+        if (!response.ok) throw new Error('API Hatası');
+        
+        const events = await response.json();
+        renderAppointments(events);
+    } catch (error) {
+        console.error('Randevu getirme hatası:', error);
+        appointmentsList.innerHTML = '<p style="color:red;">Randevular yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
+    }
+}
+
+// Randevuları Ekrana Çiz
+function renderAppointments(events) {
+    if (!events || events.length === 0) {
+        appointmentsList.innerHTML = '<p>Yaklaşan randevu bulunmuyor.</p>';
+        return;
+    }
+
+    appointmentsList.innerHTML = '';
+    events.forEach(event => {
+        // Tam gün etkinliklerinde dateTime yerine date gelir
+        const startRaw = event.start.dateTime || event.start.date;
+        const endRaw = event.end.dateTime || event.end.date;
+
+        const startDate = new Date(startRaw).toLocaleString('tr-TR', { 
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
+        });
+        
+        const endDate = new Date(endRaw).toLocaleTimeString('tr-TR', { hour: '2-digit', minute:'2-digit' });
+
+        const div = document.createElement('div');
+        div.className = 'apt-item';
+        div.innerHTML = `
+            <div class="apt-title">${event.summary || '(Başlıksız Randevu)'}</div>
+            <div class="apt-time">🕒 ${startDate} - ${endDate}</div>
+            ${event.description ? `<div style="margin-top:5px; font-size:0.9rem; color:#555;">${event.description}</div>` : ''}
+        `;
+        appointmentsList.appendChild(div);
+    });
+}
+
+// Yeni Randevu Kaydet
+btnSaveAppointment.addEventListener('click', async () => {
+    const summary = document.getElementById('apt-summary').value;
+    const start = document.getElementById('apt-start').value;
+    const end = document.getElementById('apt-end').value;
+    const desc = document.getElementById('apt-desc').value;
+
+    if (!summary || !start || !end) {
+        aptMsg.innerHTML = '<span style="color:red;">Lütfen başlık, başlangıç ve bitiş zamanını girin.</span>';
+        return;
+    }
+
+    // Google Calendar API için format (ISO 8601 offsetli)
+    const startDate = new Date(start).toISOString();
+    const endDate = new Date(end).toISOString();
+
+    btnSaveAppointment.disabled = true;
+    btnSaveAppointment.textContent = 'Kaydediliyor...';
+    aptMsg.innerHTML = '';
+
+    try {
+        const response = await fetch('/api/calendar/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary: summary,
+                description: desc,
+                startDateTime: startDate,
+                endDateTime: endDate
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            aptMsg.innerHTML = '<span style="color:green;">Randevu başarıyla eklendi!</span>';
+            setTimeout(() => {
+                addAppointmentForm.classList.add('hidden-form');
+                clearAptForm();
+                fetchAppointments(); // Listeyi yenile
+            }, 1500);
+        } else {
+            throw new Error(data.error || 'Bilinmeyen hata');
+        }
+    } catch (error) {
+        aptMsg.innerHTML = `<span style="color:red;">Hata: ${error.message}</span>`;
+    } finally {
+        btnSaveAppointment.disabled = false;
+        btnSaveAppointment.textContent = 'Kaydet';
+    }
+});
+
+// Sayfa yüklendiğinde ve tab değiştiğinde randevuları da getir
+navRandevular.addEventListener('click', () => {
+    // Diğer kodlar zaten yukarıda navRandevular listener'ında var (class ekleme çıkarma vs)
+    // Biz burada sadece ekstra fetch işlemini tetikleyeceğiz.
+    fetchAppointments();
+});
+

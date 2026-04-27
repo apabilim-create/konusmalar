@@ -254,6 +254,124 @@ body {
     color: var(--dark-blue);
 }
 
+/* Randevu Ekranı Tasarımı */
+.calendar-wrapper {
+    width: 100%;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: var(--bg-color);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--card-bg);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.calendar-header h2 {
+    color: var(--dark-blue);
+    font-size: 1.4rem;
+}
+
+.btn-save {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-secondary {
+    color: #6c757d;
+    border: 1px solid #ced4da;
+}
+
+.appointment-form {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.hidden-form {
+    display: none;
+}
+
+.appointment-form h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-group label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+.form-group input, .form-group textarea {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.appointments-list-container {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.appointments-list-container h3 {
+    margin-bottom: 15px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.apt-item {
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary-blue);
+}
+
+.apt-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.apt-time {
+    color: #667781;
+    font-size: 0.9rem;
+}
+
 /* Mobil Uyumluluk */
 @media (max-width: 768px) {
     body {

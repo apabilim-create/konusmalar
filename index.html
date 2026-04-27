@@ -54,9 +54,47 @@
 
         <!-- GÖRÜNÜM 2: RANDEVULAR -->
         <main id="view-randevular" class="container hidden-view">
-            <div class="placeholder-content">
-                <h2>📅 Randevu Ekranı</h2>
-                <p>Randevu modülü buraya eklenecektir. Şu an yapım aşamasında.</p>
+            <div class="calendar-wrapper">
+                <div class="calendar-header">
+                    <h2>📅 Randevu Ekranı</h2>
+                    <button id="btn-show-add-form" class="btn">Yeni Randevu Ekle</button>
+                </div>
+
+                <!-- Randevu Ekleme Formu (Başlangıçta Gizli) -->
+                <div id="add-appointment-form" class="appointment-form hidden-form">
+                    <h3>Yeni Randevu Oluştur</h3>
+                    <div class="form-group">
+                        <label>Randevu Başlığı (Kişi/Konu)</label>
+                        <input type="text" id="apt-summary" placeholder="Örn: Ali Yılmaz - Kontrol" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Başlangıç Zamanı</label>
+                            <input type="datetime-local" id="apt-start" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bitiş Zamanı</label>
+                            <input type="datetime-local" id="apt-end" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Açıklama (Opsiyonel)</label>
+                        <textarea id="apt-desc" rows="2" placeholder="Randevu detayları..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button id="btn-save-appointment" class="btn btn-save">Kaydet</button>
+                        <button id="btn-cancel-appointment" class="btn btn-secondary">İptal</button>
+                    </div>
+                    <div id="apt-msg" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- Gelecek Randevular Listesi -->
+                <div class="appointments-list-container">
+                    <h3>Yaklaşan Randevular</h3>
+                    <div id="appointments-list">
+                        <p class="loading">Takvim yükleniyor...</p>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
