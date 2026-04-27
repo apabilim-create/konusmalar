@@ -12,7 +12,7 @@ app.use(express.json());
 
 // Google Calendar Yetkilendirmesi
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
-const CALENDAR_ID = 'apabilim@yahoo.com';
+const CALENDAR_ID = '6f3516420c4571ce070d85d4276f156b8b896ee54a32c02099d3fa710e8ec0dc@group.calendar.google.com';
 
 let auth;
 let authError = null;
