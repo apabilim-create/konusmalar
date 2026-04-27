@@ -2,10 +2,12 @@
     --primary-blue: #0056b3;
     --light-blue: #e6f0fa;
     --dark-blue: #003d82;
-    --bg-color: #f4f7f6;
-    --text-color: #333;
+    --bg-color: #f0f2f5;
+    --text-color: #111b21;
     --card-bg: #ffffff;
-    --border-color: #ddd;
+    --border-color: #e9edef;
+    --msg-bg: #d9fdd3;
+    --msg-bg-other: #ffffff;
 }
 
 * {
@@ -18,7 +20,10 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
-    line-height: 1.6;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .header {
@@ -27,120 +32,182 @@ body {
     padding: 1rem;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+    flex-shrink: 0;
 }
 
 .container {
-    max-width: 800px;
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem;
+    background-color: var(--bg-color);
 }
 
-/* Konuşma Listesi */
-.card-container {
+/* Konuşma Listesi (Sol Menü) */
+.list-section {
+    width: 350px;
+    background-color: var(--card-bg);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    height: 100%;
+}
+
+.card-container {
+    flex: 1;
+    overflow-y: auto;
 }
 
 .conversation-btn {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
     padding: 1rem;
     text-align: left;
-    font-size: 1.1rem;
-    color: var(--primary-blue);
+    font-size: 1rem;
+    color: var(--text-color);
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: background-color 0.2s;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .conversation-btn:hover {
-    background-color: var(--light-blue);
-    border-color: var(--primary-blue);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background-color: var(--bg-color);
 }
 
-/* Modal / Detay Kısmı */
-.hidden {
-    display: none !important;
+.conversation-btn.active {
+    background-color: var(--light-blue);
+}
+
+.btn-icon {
+    font-size: 0.8em;
+    color: #8696a0;
+}
+
+/* Modal / Detay Kısmı (Sağ Taraf) */
+.detail-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #efeae2;
+    height: 100%;
+}
+
+.hidden-desktop {
+    visibility: hidden; /* Masaüstünde ilk açılışta sağ taraf boş görünsün diye */
 }
 
 .detail-header {
+    background-color: var(--card-bg);
+    padding: 15px 20px;
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--primary-blue);
+    border-bottom: 1px solid var(--border-color);
 }
 
 #detail-title {
-    color: var(--dark-blue);
-    flex-grow: 1;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+#back-btn {
+    display: none; /* Masaüstünde gizli */
 }
 
 .btn {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     border: none;
-    border-radius: 5px;
+    background: transparent;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.btn-secondary {
-    background-color: var(--light-blue);
     color: var(--primary-blue);
-    border: 1px solid var(--primary-blue);
-}
-
-.btn-secondary:hover {
-    background-color: var(--primary-blue);
-    color: white;
+    font-size: 1rem;
 }
 
 .messages-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    background-color: var(--card-bg);
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    gap: 10px;
 }
 
 .message-item {
-    padding: 10px;
-    border-radius: 5px;
-    background-color: var(--light-blue);
-    border-left: 4px solid var(--primary-blue);
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: var(--msg-bg-other);
+    box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+    align-self: flex-start;
 }
 
 .message-date {
-    font-size: 0.8rem;
-    color: #666;
-    margin-bottom: 5px;
+    font-size: 0.7rem;
+    color: #667781;
+    margin-bottom: 4px;
+    text-align: right;
+}
+
+.message-content {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-wrap: break-word;
 }
 
 .loading {
     text-align: center;
-    font-style: italic;
-    color: #666;
+    padding: 2rem;
+    color: #667781;
 }
 
 /* Mobil Uyumluluk */
-@media (max-width: 600px) {
-    .conversation-btn {
-        font-size: 1rem;
-        padding: 0.8rem;
+@media (max-width: 768px) {
+    .list-section {
+        width: 100%;
     }
     
-    .detail-header h2 {
-        font-size: 1.2rem;
+    .detail-section {
+        display: none;
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 20;
+    }
+    
+    .detail-section.mobile-active {
+        display: flex;
+    }
+    
+    .list-section.mobile-hidden {
+        display: none;
+    }
+    
+    .hidden-desktop {
+        visibility: visible;
+    }
+
+    #back-btn {
+        display: flex;
+        align-items: center;
+    }
+    
+    .header {
+        display: none; /* Mobilde detaya girince tepe menüsünü gizleyebiliriz veya ayarlayabiliriz. Biz css'le list_section üzerinden yönettik. */
+    }
+    
+    /* list bölümündeyken header gözüksün diye body layout'u flex-column zaten */
+    .list-section.mobile-hidden ~ .header {
+        display: none;
     }
 }

@@ -2,7 +2,8 @@
 const SUPABASE_URL = 'https://api.ilachatirlatma.com';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjE3OTk1MzU2MDB9.Bgt6cMbbssaluViATACTpBIC6_AIgckuHJndSmZHER0';
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Global objeyi ezmemek için client adını değiştirdik
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // DOM Elements
 const listSection = document.getElementById('conversation-list');
@@ -12,16 +13,14 @@ const detailContainer = document.getElementById('detail-container');
 const detailTitle = document.getElementById('detail-title');
 const backBtn = document.getElementById('back-btn');
 
-// Bütün verileri tutacağımız değişken
 let allConversations = [];
 
 async function fetchConversations() {
     try {
-        // Tablodan verileri çekiyoruz (tarihe göre sıralı)
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('konusmalar')
             .select('*')
-            .order('created_at', { ascending: true }); // İlk baştan sona doğru
+            .order('created_at', { ascending: true });
 
         if (error) throw error;
         
@@ -29,7 +28,7 @@ async function fetchConversations() {
         renderList();
     } catch (error) {
         console.error('Veri çekme hatası:', error);
-        listContainer.innerHTML = `<p style="color:red;">Veriler yüklenirken hata oluştu: ${error.message}</p>`;
+        listContainer.innerHTML = `<p style="color:red; padding:1rem;">Hata: ${error.message} <br> (Not: Veritabanında 'konusmalar' tablosu yoksa veya RLS izinleri kapalıysa bu hata çıkabilir.)</p>`;
     }
 }
 
@@ -37,16 +36,14 @@ function renderList() {
     listContainer.innerHTML = '';
     
     if (allConversations.length === 0) {
-        listContainer.innerHTML = '<p>Henüz kayıtlı konuşma bulunmuyor.</p>';
+        listContainer.innerHTML = '<p style="padding:1rem;">Henüz kayıtlı konuşma bulunmuyor.</p>';
         return;
     }
 
-    // Telefon no ve kişi adına göre gruplama (Benzersiz kişileri bulmak için)
     const grouped = {};
     allConversations.forEach(item => {
-        // null veya undefined olan değerleri boş string yap
-        const tel = item.telefon_no || 'Bilinmeyen No';
-        const ad = item.kisi_adi || 'İsimsiz';
+        const tel = item.telefon_no || item.telefon || 'Bilinmeyen No';
+        const ad = item.kisi_adi || item.isim || 'İsimsiz';
         const key = `${tel} - ${ad}`;
         
         if (!grouped[key]) {
@@ -55,33 +52,37 @@ function renderList() {
         grouped[key].push(item);
     });
 
-    // Listeyi ekrana bas
     Object.keys(grouped).forEach(key => {
         const btn = document.createElement('button');
         btn.className = 'conversation-btn';
-        
-        // Buton içeriği
         btn.innerHTML = `
             <span>${key}</span>
-            <span style="font-size: 0.8em; color: #666;">Konuşmalar ➔</span>
+            <span class="btn-icon">➔</span>
         `;
         
-        // Tıklama olayı
-        btn.onclick = () => showDetail(key, grouped[key]);
+        btn.onclick = () => {
+            // Aktif sınıfını ayarla
+            document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            showDetail(key, grouped[key]);
+        };
         
         listContainer.appendChild(btn);
     });
 }
 
 function showDetail(title, messages) {
-    // Listeyi gizle, detayı göster
-    listSection.classList.add('hidden');
-    detailSection.classList.remove('hidden');
+    // Mobilde listeyi gizle, detayı göster. Masaüstünde ikisi de yan yana görünür (CSS ile).
+    if (window.innerWidth <= 768) {
+        listSection.classList.add('mobile-hidden');
+        detailSection.classList.add('mobile-active');
+    }
     
-    // Başlığı ayarla
+    // Masaüstünde placeholder'ı gizle
+    detailSection.classList.remove('hidden-desktop');
+    
     detailTitle.textContent = title;
-    
-    // Mesajları temizle ve ekle
     detailContainer.innerHTML = '';
     
     if (messages.length === 0) {
@@ -93,9 +94,8 @@ function showDetail(title, messages) {
         const div = document.createElement('div');
         div.className = 'message-item';
         
-        // Tarih formatlama
         const dateStr = msg.created_at ? new Date(msg.created_at).toLocaleString('tr-TR') : '';
-        const content = msg.mesaj || msg.icerik || JSON.stringify(msg); // Mesaj kolonu adı farklıysa diye fallback
+        const content = msg.mesaj || msg.icerik || JSON.stringify(msg);
         
         div.innerHTML = `
             ${dateStr ? `<div class="message-date">${dateStr}</div>` : ''}
@@ -104,13 +104,16 @@ function showDetail(title, messages) {
         
         detailContainer.appendChild(div);
     });
+    
+    // En alta kaydır
+    detailContainer.scrollTop = detailContainer.scrollHeight;
 }
 
-// Geri butonu
 backBtn.addEventListener('click', () => {
-    detailSection.classList.add('hidden');
-    listSection.classList.remove('hidden');
+    // Mobilde geri tuşuna basınca
+    detailSection.classList.remove('mobile-active');
+    listSection.classList.remove('mobile-hidden');
+    document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
 });
 
-// Sayfa yüklendiğinde verileri çek
 window.addEventListener('DOMContentLoaded', fetchConversations);
