@@ -8,6 +8,7 @@
     --border-color: #e9edef;
     --msg-bg: #d9fdd3;
     --msg-bg-other: #ffffff;
+    --sidebar-width: 260px;
 }
 
 * {
@@ -21,9 +22,70 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     height: 100vh;
+    display: flex; /* Sidebar ve Ana Alan yan yana */
+    overflow: hidden;
+}
+
+/* Ana Sol Menü (Global Sidebar) */
+.global-sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--dark-blue);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    z-index: 50;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-header h2 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+}
+
+.nav-btn {
+    background: transparent;
+    color: #b3d4ff;
+    border: none;
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+}
+
+.nav-btn.active {
+    background-color: var(--primary-blue);
+    color: white;
+    border-left: 4px solid white;
+}
+
+/* Sağ İçerik Alanı (Wrapper) */
+.main-wrapper {
+    flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
 }
 
 .header {
@@ -36,13 +98,15 @@ body {
     flex-shrink: 0;
 }
 
+.hidden-view {
+    display: none !important;
+}
+
 .container {
     display: flex;
     flex: 1;
     overflow: hidden;
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
     background-color: var(--bg-color);
 }
 
@@ -100,7 +164,7 @@ body {
 }
 
 .hidden-desktop {
-    visibility: hidden; /* Masaüstünde ilk açılışta sağ taraf boş görünsün diye */
+    visibility: hidden;
 }
 
 .detail-header {
@@ -119,7 +183,7 @@ body {
 }
 
 #back-btn {
-    display: none; /* Masaüstünde gizli */
+    display: none;
 }
 
 .btn {
@@ -163,14 +227,73 @@ body {
     word-wrap: break-word;
 }
 
+/* Asistan Mesajları İçin Sağ Hizalama */
+.asistan-msg {
+    background-color: var(--msg-bg);
+    align-self: flex-end;
+}
+
 .loading {
     text-align: center;
     padding: 2rem;
     color: #667781;
 }
 
+/* Diğer sayfalar için placeholder */
+.placeholder-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #667781;
+}
+
+.placeholder-content h2 {
+    margin-bottom: 10px;
+    color: var(--dark-blue);
+}
+
 /* Mobil Uyumluluk */
 @media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .global-sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+    }
+    
+    .sidebar-header {
+        padding: 10px;
+        border: none;
+    }
+    
+    .sidebar-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .nav-links {
+        flex-direction: row;
+        padding: 0;
+    }
+    
+    .nav-btn {
+        padding: 15px 10px;
+        font-size: 0.9rem;
+        border-left: none;
+        border-bottom: 4px solid transparent;
+    }
+    
+    .nav-btn.active {
+        border-left: none;
+        border-bottom: 4px solid white;
+    }
+
     .list-section {
         width: 100%;
     }
@@ -182,7 +305,7 @@ body {
         top: 0;
         left: 0;
         height: 100%;
-        z-index: 20;
+        z-index: 60;
     }
     
     .detail-section.mobile-active {
@@ -202,19 +325,7 @@ body {
         align-items: center;
     }
     
-    .header {
-        display: none; /* Mobilde detaya girince tepe menüsünü gizleyebiliriz veya ayarlayabiliriz. Biz css'le list_section üzerinden yönettik. */
-    }
-    
-    /* list bölümündeyken header gözüksün diye body layout'u flex-column zaten */
     .list-section.mobile-hidden ~ .header {
         display: none;
     }
 }
-
-/* Asistan Mesajları İçin Sağ Hizalama */
-.asistan-msg {
-    background-color: var(--msg-bg);
-    align-self: flex-end;
-}
-

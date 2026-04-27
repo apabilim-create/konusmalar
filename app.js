@@ -10,6 +10,30 @@ const listContainer = document.getElementById('list-container');
 const detailContainer = document.getElementById('detail-container');
 const detailTitle = document.getElementById('detail-title');
 const backBtn = document.getElementById('back-btn');
+const pageTitle = document.getElementById('page-title');
+
+// Sidebar Navigation Elements
+const navKonusmalar = document.getElementById('nav-konusmalar');
+const navRandevular = document.getElementById('nav-randevular');
+const viewKonusmalar = document.getElementById('view-konusmalar');
+const viewRandevular = document.getElementById('view-randevular');
+
+// Sidebar Navigation Logic
+navKonusmalar.addEventListener('click', () => {
+    navKonusmalar.classList.add('active');
+    navRandevular.classList.remove('active');
+    viewKonusmalar.classList.remove('hidden-view');
+    viewRandevular.classList.add('hidden-view');
+    pageTitle.textContent = 'Konuşmalar';
+});
+
+navRandevular.addEventListener('click', () => {
+    navRandevular.classList.add('active');
+    navKonusmalar.classList.remove('active');
+    viewRandevular.classList.remove('hidden-view');
+    viewKonusmalar.classList.add('hidden-view');
+    pageTitle.textContent = 'Randevu Ekranı';
+});
 
 let allConversations = [];
 
