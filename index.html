@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konuşmalar</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header class="header">
+        <h1>Konuşmalar</h1>
+    </header>
+    
+    <main class="container">
+        <!-- Konuşma Listesi -->
+        <section id="conversation-list" class="list-section">
+            <div id="list-container" class="card-container">
+                <p class="loading">Veriler yükleniyor...</p>
+            </div>
+        </section>
+
+        <!-- Konuşma Detayı -->
+        <section id="conversation-detail" class="detail-section hidden">
+            <div class="detail-header">
+                <button id="back-btn" class="btn btn-secondary">← Geri</button>
+                <h2 id="detail-title">Kişi Adı</h2>
+            </div>
+            <div id="detail-container" class="messages-container">
+                <!-- Mesajlar buraya gelecek -->
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

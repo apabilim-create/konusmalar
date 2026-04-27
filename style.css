@@ -1,0 +1,146 @@
+:root {
+    --primary-blue: #0056b3;
+    --light-blue: #e6f0fa;
+    --dark-blue: #003d82;
+    --bg-color: #f4f7f6;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --border-color: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.header {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Konuşma Listesi */
+.card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.conversation-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: left;
+    font-size: 1.1rem;
+    color: var(--primary-blue);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.conversation-btn:hover {
+    background-color: var(--light-blue);
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Modal / Detay Kısmı */
+.hidden {
+    display: none !important;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-blue);
+}
+
+#detail-title {
+    color: var(--dark-blue);
+    flex-grow: 1;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary {
+    background-color: var(--light-blue);
+    color: var(--primary-blue);
+    border: 1px solid var(--primary-blue);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background-color: var(--card-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.message-item {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--light-blue);
+    border-left: 4px solid var(--primary-blue);
+}
+
+.message-date {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.loading {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}
+
+/* Mobil Uyumluluk */
+@media (max-width: 600px) {
+    .conversation-btn {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+    
+    .detail-header h2 {
+        font-size: 1.2rem;
+    }
+}
