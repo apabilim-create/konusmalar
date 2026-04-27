@@ -182,7 +182,14 @@ const aptMsg = document.getElementById('apt-msg');
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek', // VARSAYILAN OLARAK HAFTALIK SAAT ÇİZELGESİ
+        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek', // MOBİLDE GÜNLÜK, MASAÜSTÜNDE HAFTALIK
+        windowResize: function(arg) {
+            if (window.innerWidth < 768) {
+                calendar.changeView('timeGridDay');
+            } else {
+                calendar.changeView('timeGridWeek');
+            }
+        },
         locale: 'tr',
         slotMinTime: '07:00:00', // Takvim sabah 07:00'den başlasın
         slotMaxTime: '22:00:00', // Gece 22:00'ye kadar gitsin

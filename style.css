@@ -446,6 +446,31 @@ body {
     .list-section.mobile-hidden ~ .header {
         display: none;
     }
+
+    /* Mobilde form yan yana yerine alt alta gelsin */
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Mobilde takvim kartı daha az padding alsın */
+    .calendar-container-card {
+        padding: 10px;
+        min-height: 400px;
+    }
+
+    /* FullCalendar Başlık Kısmı Mobilde Sığsın */
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
 }
 
 /* --- FULLCALENDAR GÜNCELLEMESİ --- */
