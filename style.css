@@ -211,3 +211,10 @@ body {
         display: none;
     }
 }
+
+/* Asistan Mesajları İçin Sağ Hizalama */
+.asistan-msg {
+    background-color: var(--msg-bg);
+    align-self: flex-end;
+}
+

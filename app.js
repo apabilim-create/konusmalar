@@ -2,10 +2,8 @@
 const SUPABASE_URL = 'https://api.ilachatirlatma.com';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjE3OTk1MzU2MDB9.Bgt6cMbbssaluViATACTpBIC6_AIgckuHJndSmZHER0';
 
-// Global objeyi ezmemek için client adını değiştirdik
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// DOM Elements
 const listSection = document.getElementById('conversation-list');
 const detailSection = document.getElementById('conversation-detail');
 const listContainer = document.getElementById('list-container');
@@ -20,7 +18,7 @@ async function fetchConversations() {
         const { data, error } = await supabaseClient
             .from('konusmalar')
             .select('*')
-            .order('created_at', { ascending: true });
+            .order('olusturulma_zamani', { ascending: true }); // Doğru kolon adı
 
         if (error) throw error;
         
@@ -28,7 +26,7 @@ async function fetchConversations() {
         renderList();
     } catch (error) {
         console.error('Veri çekme hatası:', error);
-        listContainer.innerHTML = `<p style="color:red; padding:1rem;">Hata: ${error.message} <br> (Not: Veritabanında 'konusmalar' tablosu yoksa veya RLS izinleri kapalıysa bu hata çıkabilir.)</p>`;
+        listContainer.innerHTML = `<p style="color:red; padding:1rem;">Hata: ${error.message}</p>`;
     }
 }
 
@@ -42,8 +40,11 @@ function renderList() {
 
     const grouped = {};
     allConversations.forEach(item => {
-        const tel = item.telefon_no || item.telefon || 'Bilinmeyen No';
-        const ad = item.kisi_adi || item.isim || 'İsimsiz';
+        // WhatsApp numaralarındaki @s.whatsapp.net kısmını temizle (isteğe bağlı ama güzel durur)
+        let tel = item.telefon_numarasi || 'Bilinmeyen No';
+        if(tel.includes('@')) tel = tel.split('@')[0];
+
+        const ad = item.kisi_adi && item.kisi_adi.trim() !== '' ? item.kisi_adi : 'İsimsiz';
         const key = `${tel} - ${ad}`;
         
         if (!grouped[key]) {
@@ -61,7 +62,6 @@ function renderList() {
         `;
         
         btn.onclick = () => {
-            // Aktif sınıfını ayarla
             document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
@@ -73,15 +73,12 @@ function renderList() {
 }
 
 function showDetail(title, messages) {
-    // Mobilde listeyi gizle, detayı göster. Masaüstünde ikisi de yan yana görünür (CSS ile).
     if (window.innerWidth <= 768) {
         listSection.classList.add('mobile-hidden');
         detailSection.classList.add('mobile-active');
     }
     
-    // Masaüstünde placeholder'ı gizle
     detailSection.classList.remove('hidden-desktop');
-    
     detailTitle.textContent = title;
     detailContainer.innerHTML = '';
     
@@ -91,26 +88,35 @@ function showDetail(title, messages) {
     }
 
     messages.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = 'message-item';
-        
-        const dateStr = msg.created_at ? new Date(msg.created_at).toLocaleString('tr-TR') : '';
-        const content = msg.mesaj || msg.icerik || JSON.stringify(msg);
-        
-        div.innerHTML = `
-            ${dateStr ? `<div class="message-date">${dateStr}</div>` : ''}
-            <div class="message-content">${content}</div>
-        `;
-        
-        detailContainer.appendChild(div);
+        const dateStr = msg.olusturulma_zamani ? new Date(msg.olusturulma_zamani).toLocaleString('tr-TR') : '';
+        const isim = msg.kisi_adi && msg.kisi_adi.trim() !== '' ? msg.kisi_adi : 'Kullanıcı';
+
+        // Kullanıcı Mesajı (Sol)
+        if (msg.kullanici_mesaji && msg.kullanici_mesaji.trim() !== '') {
+            const divKullanici = document.createElement('div');
+            divKullanici.className = 'message-item';
+            divKullanici.innerHTML = `
+                ${dateStr ? `<div class="message-date">${dateStr}</div>` : ''}
+                <div class="message-content"><strong>${isim}:</strong> <br>${msg.kullanici_mesaji}</div>
+            `;
+            detailContainer.appendChild(divKullanici);
+        }
+
+        // Asistan Yanıtı (Sağ)
+        if (msg.asistan_yaniti && msg.asistan_yaniti.trim() !== '') {
+            const divAsistan = document.createElement('div');
+            divAsistan.className = 'message-item asistan-msg';
+            divAsistan.innerHTML = `
+                <div class="message-content"><strong>Asistan:</strong> <br>${msg.asistan_yaniti}</div>
+            `;
+            detailContainer.appendChild(divAsistan);
+        }
     });
     
-    // En alta kaydır
     detailContainer.scrollTop = detailContainer.scrollHeight;
 }
 
 backBtn.addEventListener('click', () => {
-    // Mobilde geri tuşuna basınca
     detailSection.classList.remove('mobile-active');
     listSection.classList.remove('mobile-hidden');
     document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
