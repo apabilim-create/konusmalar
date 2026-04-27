@@ -99,6 +99,24 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Randevu Silme (Delete)
+app.delete('/api/calendar/delete/:eventId', async (req, res) => {
+    if (authError) return res.status(500).json({ error: 'Auth hatası', details: authError });
+    
+    const { eventId } = req.params;
+    try {
+        const calendar = google.calendar({ version: 'v3', auth });
+        await calendar.events.delete({
+            calendarId: CALENDAR_ID,
+            eventId: eventId,
+        });
+        res.json({ success: true, message: 'Randevu başarıyla silindi.' });
+    } catch (error) {
+        console.error('Randevu silme hatası:', error);
+        res.status(500).json({ error: 'Randevu silinemedi.', details: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Sunucu ${PORT} portunda çalışıyor...`);
 });
