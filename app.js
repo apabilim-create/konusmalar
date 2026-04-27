@@ -391,11 +391,21 @@ window.addEventListener('DOMContentLoaded', () => {
                     table: 'konusmalar'
                 },
                 (payload) => {
-                    console.log('Canlı değişiklik algılandı:', payload);
+                    console.log('Canlı değişiklik algılandı (Realtime):', payload);
                     fetchConversations(); // Verileri yeniden çek ve listeyi güncelle
                 }
             )
-            .subscribe();
+            .subscribe((status, err) => {
+                console.log('Supabase Realtime Durumu:', status);
+                if (err) console.error('Realtime Hatası:', err);
+            });
         console.log('Gerçek zamanlı takip başlatıldı.');
     }
+
+    // --- GARANTİLİ YEDEKLEME (POLLING) ---
+    // Eğer Supabase panelindeki Realtime ayarlarında bir sorun varsa,
+    // sistemin her 5 saniyede bir arka planda sessizce yeni mesajları kontrol etmesini sağlar.
+    setInterval(() => {
+        fetchConversations();
+    }, 5000);
 });
