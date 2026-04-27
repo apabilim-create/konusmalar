@@ -2,7 +2,18 @@
 const SUPABASE_URL = 'https://api.ilachatirlatma.com';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjE3OTk1MzU2MDB9.Bgt6cMbbssaluViATACTpBIC6_AIgckuHJndSmZHER0';
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient;
+try {
+    if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase istemcisi hazır.');
+    } else {
+        throw new Error('Supabase kütüphanesi yüklenemedi. Lütfen internet bağlantınızı ve CDN bağlantısını kontrol edin.');
+    }
+} catch (err) {
+    console.error('Supabase Başlatma Hatası:', err);
+    document.getElementById('supabase-error-msg').innerHTML = `<div class="supabase-error"><strong>Supabase Bağlantı Hatası:</strong> ${err.message}</div>`;
+}
 
 const listSection = document.getElementById('conversation-list');
 const detailSection = document.getElementById('conversation-detail');
@@ -17,6 +28,9 @@ const navKonusmalar = document.getElementById('nav-konusmalar');
 const navRandevular = document.getElementById('nav-randevular');
 const viewKonusmalar = document.getElementById('view-konusmalar');
 const viewRandevular = document.getElementById('view-randevular');
+
+// --- CALENDAR GLOBAL VARIABLE ---
+let calendar;
 
 // Sidebar Navigation Logic
 navKonusmalar.addEventListener('click', () => {
@@ -33,16 +47,30 @@ navRandevular.addEventListener('click', () => {
     viewRandevular.classList.remove('hidden-view');
     viewKonusmalar.classList.add('hidden-view');
     pageTitle.textContent = 'Randevu Ekranı';
+    
+    // Takvimi Başlat veya Boyutlandır
+    if (!calendar) {
+        initCalendar();
+    } else {
+        setTimeout(() => calendar.render(), 100); // Görünür olduktan sonra tekrar çiz
+    }
 });
+
+// ==========================================
+// KONUŞMALAR (SUPABASE) İŞLEMLERİ
+// ==========================================
 
 let allConversations = [];
 
 async function fetchConversations() {
+    if (!supabaseClient) return;
+    
+    listContainer.innerHTML = '<p class="loading">Veriler yükleniyor...</p>';
     try {
         const { data, error } = await supabaseClient
             .from('konusmalar')
             .select('*')
-            .order('olusturulma_zamani', { ascending: true }); // Doğru kolon adı
+            .order('olusturulma_zamani', { ascending: true });
 
         if (error) throw error;
         
@@ -50,7 +78,7 @@ async function fetchConversations() {
         renderList();
     } catch (error) {
         console.error('Veri çekme hatası:', error);
-        listContainer.innerHTML = `<p style="color:red; padding:1rem;">Hata: ${error.message}</p>`;
+        listContainer.innerHTML = `<p style="color:red; padding:1rem;"><strong>Bağlantı Hatası:</strong> ${error.message}<br><small>Supabase URL veya Key hatalı olabilir ya da tablo ismi 'konusmalar' değildir.</small></p>`;
     }
 }
 
@@ -64,34 +92,25 @@ function renderList() {
 
     const grouped = {};
     allConversations.forEach(item => {
-        // WhatsApp numaralarındaki @s.whatsapp.net kısmını temizle (isteğe bağlı ama güzel durur)
         let tel = item.telefon_numarasi || 'Bilinmeyen No';
         if(tel.includes('@')) tel = tel.split('@')[0];
 
         const ad = item.kisi_adi && item.kisi_adi.trim() !== '' ? item.kisi_adi : 'İsimsiz';
         const key = `${tel} - ${ad}`;
         
-        if (!grouped[key]) {
-            grouped[key] = [];
-        }
+        if (!grouped[key]) grouped[key] = [];
         grouped[key].push(item);
     });
 
     Object.keys(grouped).forEach(key => {
         const btn = document.createElement('button');
         btn.className = 'conversation-btn';
-        btn.innerHTML = `
-            <span>${key}</span>
-            <span class="btn-icon">➔</span>
-        `;
-        
+        btn.innerHTML = `<span>${key}</span><span class="btn-icon">➔</span>`;
         btn.onclick = () => {
             document.querySelectorAll('.conversation-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
             showDetail(key, grouped[key]);
         };
-        
         listContainer.appendChild(btn);
     });
 }
@@ -106,37 +125,24 @@ function showDetail(title, messages) {
     detailTitle.textContent = title;
     detailContainer.innerHTML = '';
     
-    if (messages.length === 0) {
-        detailContainer.innerHTML = '<p>Bu kişiye ait mesaj bulunamadı.</p>';
-        return;
-    }
-
     messages.forEach(msg => {
         const dateStr = msg.olusturulma_zamani ? new Date(msg.olusturulma_zamani).toLocaleString('tr-TR') : '';
         const isim = msg.kisi_adi && msg.kisi_adi.trim() !== '' ? msg.kisi_adi : 'Kullanıcı';
 
-        // Kullanıcı Mesajı (Sol)
         if (msg.kullanici_mesaji && msg.kullanici_mesaji.trim() !== '') {
-            const divKullanici = document.createElement('div');
-            divKullanici.className = 'message-item';
-            divKullanici.innerHTML = `
-                ${dateStr ? `<div class="message-date">${dateStr}</div>` : ''}
-                <div class="message-content"><strong>${isim}:</strong> <br>${msg.kullanici_mesaji}</div>
-            `;
-            detailContainer.appendChild(divKullanici);
+            const div = document.createElement('div');
+            div.className = 'message-item';
+            div.innerHTML = `${dateStr ? `<div class="message-date">${dateStr}</div>` : ''}<div class="message-content"><strong>${isim}:</strong> <br>${msg.kullanici_mesaji}</div>`;
+            detailContainer.appendChild(div);
         }
 
-        // Asistan Yanıtı (Sağ)
         if (msg.asistan_yaniti && msg.asistan_yaniti.trim() !== '') {
-            const divAsistan = document.createElement('div');
-            divAsistan.className = 'message-item asistan-msg';
-            divAsistan.innerHTML = `
-                <div class="message-content"><strong>Asistan:</strong> <br>${msg.asistan_yaniti}</div>
-            `;
-            detailContainer.appendChild(divAsistan);
+            const div = document.createElement('div');
+            div.className = 'message-item asistan-msg';
+            div.innerHTML = `<div class="message-content"><strong>Asistan:</strong> <br>${msg.asistan_yaniti}</div>`;
+            detailContainer.appendChild(div);
         }
     });
-    
     detailContainer.scrollTop = detailContainer.scrollHeight;
 }
 
@@ -147,21 +153,62 @@ backBtn.addEventListener('click', () => {
 });
 
 // ==========================================
-// GOOGLE CALENDAR (RANDEVU) İŞLEMLERİ
+// FULLCALENDAR (RANDEVU) İŞLEMLERİ
 // ==========================================
 
 const btnShowAddForm = document.getElementById('btn-show-add-form');
 const addAppointmentForm = document.getElementById('add-appointment-form');
 const btnCancelAppointment = document.getElementById('btn-cancel-appointment');
 const btnSaveAppointment = document.getElementById('btn-save-appointment');
-const appointmentsList = document.getElementById('appointments-list');
 const aptMsg = document.getElementById('apt-msg');
 
-// Formu Göster/Gizle
-btnShowAddForm.addEventListener('click', () => {
-    addAppointmentForm.classList.remove('hidden-form');
-});
+function initCalendar() {
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'tr',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'Bugün',
+            month: 'Ay',
+            week: 'Hafta',
+            day: 'Gün'
+        },
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const response = await fetch('/api/calendar/events');
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.details || 'Veri çekilemedi');
 
+                const formattedEvents = data.map(event => ({
+                    title: event.summary || '(Başlıksız)',
+                    start: event.start.dateTime || event.start.date,
+                    end: event.end.dateTime || event.end.date,
+                    description: event.description,
+                    backgroundColor: '#0056b3',
+                    borderColor: '#004494'
+                }));
+                
+                successCallback(formattedEvents);
+            } catch (error) {
+                console.error('Takvim verisi hatası:', error);
+                failureCallback(error);
+            }
+        },
+        eventClick: function(info) {
+            alert('Randevu: ' + info.event.title + '\nAçıklama: ' + (info.event.extendedProps.description || '-'));
+        }
+    });
+    calendar.render();
+}
+
+// Form İşlemleri
+btnShowAddForm.addEventListener('click', () => addAppointmentForm.classList.remove('hidden-form'));
 btnCancelAppointment.addEventListener('click', () => {
     addAppointmentForm.classList.add('hidden-form');
     clearAptForm();
@@ -175,59 +222,6 @@ function clearAptForm() {
     aptMsg.innerHTML = '';
 }
 
-// Randevuları Getir
-async function fetchAppointments() {
-    appointmentsList.innerHTML = '<p class="loading">Takvim yükleniyor...</p>';
-    try {
-        const response = await fetch('/api/calendar/events');
-        const data = await response.json().catch(() => null);
-        
-        if (!response.ok) {
-            throw new Error(data && data.details ? data.details : 'Sunucu Hatası');
-        }
-        
-        renderAppointments(data);
-    } catch (error) {
-        console.error('Randevu getirme hatası:', error);
-        appointmentsList.innerHTML = `<p style="color:red; padding:15px; border:1px solid red; border-radius:5px;">
-            <strong>Hata Oluştu:</strong> ${error.message}
-            <br><br>
-            <em>Not: "Not Found" hatası alıyorsanız, takviminizi Service Account ile paylaşmamış olabilirsiniz.</em>
-        </p>`;
-    }
-}
-
-// Randevuları Ekrana Çiz
-function renderAppointments(events) {
-    if (!events || events.length === 0) {
-        appointmentsList.innerHTML = '<p>Yaklaşan randevu bulunmuyor.</p>';
-        return;
-    }
-
-    appointmentsList.innerHTML = '';
-    events.forEach(event => {
-        // Tam gün etkinliklerinde dateTime yerine date gelir
-        const startRaw = event.start.dateTime || event.start.date;
-        const endRaw = event.end.dateTime || event.end.date;
-
-        const startDate = new Date(startRaw).toLocaleString('tr-TR', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
-        });
-        
-        const endDate = new Date(endRaw).toLocaleTimeString('tr-TR', { hour: '2-digit', minute:'2-digit' });
-
-        const div = document.createElement('div');
-        div.className = 'apt-item';
-        div.innerHTML = `
-            <div class="apt-title">${event.summary || '(Başlıksız Randevu)'}</div>
-            <div class="apt-time">🕒 ${startDate} - ${endDate}</div>
-            ${event.description ? `<div style="margin-top:5px; font-size:0.9rem; color:#555;">${event.description}</div>` : ''}
-        `;
-        appointmentsList.appendChild(div);
-    });
-}
-
-// Yeni Randevu Kaydet
 btnSaveAppointment.addEventListener('click', async () => {
     const summary = document.getElementById('apt-summary').value;
     const start = document.getElementById('apt-start').value;
@@ -239,14 +233,9 @@ btnSaveAppointment.addEventListener('click', async () => {
         return;
     }
 
-    // Google Calendar API için format (ISO 8601 offsetli)
-    const startDate = new Date(start).toISOString();
-    const endDate = new Date(end).toISOString();
-
     btnSaveAppointment.disabled = true;
     btnSaveAppointment.textContent = 'Kaydediliyor...';
-    aptMsg.innerHTML = '';
-
+    
     try {
         const response = await fetch('/api/calendar/add', {
             method: 'POST',
@@ -254,21 +243,20 @@ btnSaveAppointment.addEventListener('click', async () => {
             body: JSON.stringify({
                 summary: summary,
                 description: desc,
-                startDateTime: startDate,
-                endDateTime: endDate
+                startDateTime: new Date(start).toISOString(),
+                endDateTime: new Date(end).toISOString()
             })
         });
-
-        const data = await response.json();
 
         if (response.ok) {
             aptMsg.innerHTML = '<span style="color:green;">Randevu başarıyla eklendi!</span>';
             setTimeout(() => {
                 addAppointmentForm.classList.add('hidden-form');
                 clearAptForm();
-                fetchAppointments(); // Listeyi yenile
+                calendar.refetchEvents(); // Takvimi yenile
             }, 1500);
         } else {
+            const data = await response.json();
             throw new Error(data.error || 'Bilinmeyen hata');
         }
     } catch (error) {
@@ -279,10 +267,5 @@ btnSaveAppointment.addEventListener('click', async () => {
     }
 });
 
-// Sayfa yüklendiğinde ve tab değiştiğinde randevuları da getir
-navRandevular.addEventListener('click', () => {
-    // Diğer kodlar zaten yukarıda navRandevular listener'ında var (class ekleme çıkarma vs)
-    // Biz burada sadece ekstra fetch işlemini tetikleyeceğiz.
-    fetchAppointments();
-});
-
+// Sayfa yüklendiğinde Konuşmaları getir
+window.addEventListener('DOMContentLoaded', fetchConversations);

@@ -447,3 +447,47 @@ body {
         display: none;
     }
 }
+
+/* --- FULLCALENDAR GÜNCELLEMESİ --- */
+.calendar-container-card {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-height: 600px;
+    margin-bottom: 30px;
+}
+
+#calendar {
+    font-family: 'Inter', sans-serif;
+}
+
+.fc .fc-button-primary {
+    background-color: var(--primary-blue) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+.fc .fc-button-primary:hover {
+    background-color: var(--dark-blue) !important;
+    border-color: var(--dark-blue) !important;
+}
+
+.fc-toolbar-title {
+    color: var(--dark-blue) !important;
+    font-weight: 600 !important;
+}
+
+.supabase-error {
+    background: #fff5f5;
+    color: #c53030;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #feb2b2;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.hidden-view {
+    display: none !important;
+}

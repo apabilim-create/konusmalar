@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 </head>
 <body>
     
@@ -33,6 +33,7 @@
         
         <!-- GÖRÜNÜM 1: KONUŞMALAR -->
         <main id="view-konusmalar" class="container">
+            <div id="supabase-error-msg"></div>
             <!-- Konuşma Listesi -->
             <section id="conversation-list" class="list-section">
                 <div id="list-container" class="card-container">
@@ -88,17 +89,17 @@
                     <div id="apt-msg" style="margin-top: 10px;"></div>
                 </div>
 
-                <!-- Gelecek Randevular Listesi -->
-                <div class="appointments-list-container">
-                    <h3>Yaklaşan Randevular</h3>
-                    <div id="appointments-list">
-                        <p class="loading">Takvim yükleniyor...</p>
-                    </div>
+                <!-- Google Calendar Görünümlü Takvim -->
+                <div class="calendar-container-card">
+                    <div id="calendar"></div>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
