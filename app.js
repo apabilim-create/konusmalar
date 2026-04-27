@@ -169,6 +169,8 @@ function initCalendar() {
         locale: 'tr',
         slotMinTime: '07:00:00', // Takvim sabah 07:00'den başlasın
         slotMaxTime: '22:00:00', // Gece 22:00'ye kadar gitsin
+        slotDuration: '00:30:00', // 30 DAKİKALIK DİLİMLER
+        snapDuration: '00:30:00', // SÜRÜKLERKEN 30 DK'YA YAPIŞSIN
         allDaySlot: false,       // Tüm gün kısmını gizle (saat odaklı olsun)
         headerToolbar: {
             left: 'prev,next today',
@@ -181,7 +183,7 @@ function initCalendar() {
             week: 'Hafta',
             day: 'Gün'
         },
-        editable: true, // SÜRÜKLE-BIRAK VE BOYUTLANDIRMAYI AÇAR
+        editable: true, 
         selectable: true,
         events: async function(info, successCallback, failureCallback) {
             try {
@@ -207,16 +209,16 @@ function initCalendar() {
             }
         },
 
-        // --- HIZLI EKLEME (TIKLAYARAK) ---
+        // --- HIZLI EKLEME (30 DK VARSAYILAN) ---
         dateClick: async function(info) {
             const summary = prompt('Yeni Randevu Başlığı:');
             if (!summary) return;
 
             try {
-                // Tıklanan saatten itibaren 1 saatlik randevu oluştur
+                // Tıklanan saatten itibaren 30 DAKİKALIK randevu oluştur
                 const start = new Date(info.date);
                 const end = new Date(info.date);
-                end.setHours(end.getHours() + 1);
+                end.setMinutes(end.getMinutes() + 30); // 30 DAKİKA EKLE
 
                 const response = await fetch('/api/calendar/add', {
                     method: 'POST',
