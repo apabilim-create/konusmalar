@@ -117,6 +117,30 @@ app.delete('/api/calendar/delete/:eventId', async (req, res) => {
     }
 });
 
+// Randevu Güncelleme (Sürükle-Bırak/Boyutlandırma için)
+app.patch('/api/calendar/update/:eventId', async (req, res) => {
+    if (authError) return res.status(500).json({ error: 'Auth hatası', details: authError });
+    
+    const { eventId } = req.params;
+    const { startDateTime, endDateTime } = req.body;
+    
+    try {
+        const calendar = google.calendar({ version: 'v3', auth });
+        await calendar.events.patch({
+            calendarId: CALENDAR_ID,
+            eventId: eventId,
+            requestBody: {
+                start: { dateTime: startDateTime },
+                end: { dateTime: endDateTime }
+            }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Randevu güncelleme hatası:', error);
+        res.status(500).json({ error: 'Güncellenemedi.', details: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Sunucu ${PORT} portunda çalışıyor...`);
 });

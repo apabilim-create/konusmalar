@@ -178,6 +178,8 @@ function initCalendar() {
             week: 'Hafta',
             day: 'Gün'
         },
+        editable: true, // SÜRÜKLE-BIRAK VE BOYUTLANDIRMAYI AÇAR
+        selectable: true,
         events: async function(info, successCallback, failureCallback) {
             try {
                 const response = await fetch('/api/calendar/events');
@@ -186,7 +188,7 @@ function initCalendar() {
                 if (!response.ok) throw new Error(data.details || 'Veri çekilemedi');
 
                 const formattedEvents = data.map(event => ({
-                    id: event.id, // SİLME İŞLEMİ İÇİN GEREKLİ
+                    id: event.id,
                     title: event.summary || '(Başlıksız)',
                     start: event.start.dateTime || event.start.date,
                     end: event.end.dateTime || event.end.date,
@@ -201,21 +203,49 @@ function initCalendar() {
                 failureCallback(error);
             }
         },
-        // BOŞ BİR GÜNE TIKLANDIĞINDA
-        dateClick: function(info) {
-            const startDate = info.dateStr + 'T09:00'; // Varsayılan sabah 9
-            const endDate = info.dateStr + 'T10:00';   // Varsayılan sabah 10
-            
-            document.getElementById('apt-start').value = startDate.substring(0, 16);
-            document.getElementById('apt-end').value = endDate.substring(0, 16);
-            
-            addAppointmentForm.classList.remove('hidden-form');
-            document.getElementById('apt-summary').focus();
-            
-            // Sayfayı forma kaydır
-            addAppointmentForm.scrollIntoView({ behavior: 'smooth' });
+
+        // --- HIZLI EKLEME (TIKLAYARAK) ---
+        dateClick: async function(info) {
+            const summary = prompt('Yeni Randevu Başlığı:');
+            if (!summary) return;
+
+            try {
+                // Tıklanan saatten itibaren 1 saatlik randevu oluştur
+                const start = new Date(info.date);
+                const end = new Date(info.date);
+                end.setHours(end.getHours() + 1);
+
+                const response = await fetch('/api/calendar/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        summary: summary,
+                        startDateTime: start.toISOString(),
+                        endDateTime: end.toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    calendar.refetchEvents();
+                } else {
+                    alert('Ekleme hatası oluştu.');
+                }
+            } catch (error) {
+                alert('Hata: ' + error.message);
+            }
         },
-        // MEVCUT BİR RANDEVUYA TIKLANDIĞINDA
+
+        // --- SÜRÜKLE BIRAK (GÜNCELLEME) ---
+        eventDrop: async function(info) {
+            updateEventTimes(info.event);
+        },
+
+        // --- BOYUTLANDIRMA (SÜRE DEĞİŞTİRME) ---
+        eventResize: async function(info) {
+            updateEventTimes(info.event);
+        },
+
+        // --- TIKLAYARAK SİLME ---
         eventClick: async function(info) {
             const eventId = info.event.id;
             const eventTitle = info.event.title;
@@ -227,8 +257,7 @@ function initCalendar() {
                     });
                     
                     if (response.ok) {
-                        alert('Randevu silindi.');
-                        calendar.refetchEvents(); // Takvimi güncelle
+                        calendar.refetchEvents();
                     } else {
                         const data = await response.json();
                         alert('Silme hatası: ' + data.error);
@@ -240,6 +269,27 @@ function initCalendar() {
         }
     });
     calendar.render();
+}
+
+async function updateEventTimes(event) {
+    try {
+        const response = await fetch(`/api/calendar/update/${event.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                startDateTime: event.start.toISOString(),
+                endDateTime: event.end ? event.end.toISOString() : event.start.toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            alert('Güncelleme sunucuya iletilemedi.');
+            calendar.refetchEvents();
+        }
+    } catch (error) {
+        alert('Bağlantı hatası: ' + error.message);
+        calendar.refetchEvents();
+    }
 }
 
 // Form İşlemleri
