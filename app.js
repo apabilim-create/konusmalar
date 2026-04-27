@@ -358,4 +358,27 @@ btnSaveAppointment.addEventListener('click', async () => {
 });
 
 // Sayfa yüklendiğinde Konuşmaları getir
-window.addEventListener('DOMContentLoaded', fetchConversations);
+window.addEventListener('DOMContentLoaded', () => {
+    fetchConversations();
+    
+    // --- SUPABASE REALTIME (GERÇEK ZAMANLI GÜNCELLEME) ---
+    // Bu kısım veritabanındaki her değişikliği canlı olarak dinler
+    if (supabaseClient) {
+        supabaseClient
+            .channel('schema-db-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // INSERT, UPDATE, DELETE hepsini dinle
+                    schema: 'public',
+                    table: 'konusmalar'
+                },
+                (payload) => {
+                    console.log('Canlı değişiklik algılandı:', payload);
+                    fetchConversations(); // Verileri yeniden çek ve listeyi güncelle
+                }
+            )
+            .subscribe();
+        console.log('Gerçek zamanlı takip başlatıldı.');
+    }
+});
