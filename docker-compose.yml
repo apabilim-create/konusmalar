@@ -6,4 +6,6 @@ services:
     container_name: konusmalar-web
     ports:
       - "8085:80"
+    environment:
+      - GOOGLE_CREDENTIALS=${GOOGLE_CREDENTIALS}
     restart: unless-stopped
