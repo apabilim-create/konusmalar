@@ -14,25 +14,31 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 const CALENDAR_ID = 'apabilim@yahoo.com';
 
 let auth;
-if (process.env.GOOGLE_CREDENTIALS) {
-    // Dokploy'da çevre değişkeni olarak yüklendiğinde buradan okur
-    const keysEnvVar = process.env.GOOGLE_CREDENTIALS;
-    const keys = JSON.parse(keysEnvVar);
-    auth = google.auth.fromJSON(keys);
-    auth.scopes = SCOPES;
-} else {
-    // Yerel test için dosyadan okur
-    const KEYFILEPATH = path.join(__dirname, 'google-credentials.json');
-    auth = new google.auth.GoogleAuth({
-        keyFile: KEYFILEPATH,
-        scopes: SCOPES,
-    });
+let authError = null;
+
+try {
+    if (process.env.GOOGLE_CREDENTIALS) {
+        const keysEnvVar = process.env.GOOGLE_CREDENTIALS;
+        const keys = JSON.parse(keysEnvVar);
+        auth = google.auth.fromJSON(keys);
+        auth.scopes = SCOPES;
+    } else {
+        authError = "GOOGLE_CREDENTIALS çevre değişkeni bulunamadı. Dokploy ayarlarını kontrol edin.";
+    }
+} catch (err) {
+    authError = "GOOGLE_CREDENTIALS JSON formatı hatalı: " + err.message;
 }
 
-const calendar = google.calendar({ version: 'v3', auth });
+let calendar;
+if (!authError) {
+    calendar = google.calendar({ version: 'v3', auth });
+}
 
 // Takvim etkinliklerini getirme
 app.get('/api/calendar/events', async (req, res) => {
+    if (authError) {
+        return res.status(500).json({ error: 'Yetkilendirme Hatası', details: authError });
+    }
     try {
         const response = await calendar.events.list({
             calendarId: CALENDAR_ID,
@@ -50,6 +56,9 @@ app.get('/api/calendar/events', async (req, res) => {
 
 // Yeni etkinlik (randevu) ekleme
 app.post('/api/calendar/add', async (req, res) => {
+    if (authError) {
+        return res.status(500).json({ error: 'Yetkilendirme Hatası', details: authError });
+    }
     const { summary, description, startDateTime, endDateTime } = req.body;
 
     if (!summary || !startDateTime || !endDateTime) {
