@@ -165,8 +165,11 @@ const aptMsg = document.getElementById('apt-msg');
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        initialView: 'timeGridWeek', // VARSAYILAN OLARAK HAFTALIK SAAT ÇİZELGESİ
         locale: 'tr',
+        slotMinTime: '07:00:00', // Takvim sabah 07:00'den başlasın
+        slotMaxTime: '22:00:00', // Gece 22:00'ye kadar gitsin
+        allDaySlot: false,       // Tüm gün kısmını gizle (saat odaklı olsun)
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
