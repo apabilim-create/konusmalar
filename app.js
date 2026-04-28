@@ -191,6 +191,7 @@ function initCalendar() {
             }
         },
         locale: 'tr',
+        firstDay: 1, // Haftanın ilk günü Pazartesi
         slotMinTime: '07:00:00', // Takvim sabah 07:00'den başlasın
         slotMaxTime: '22:00:00', // Gece 22:00'ye kadar gitsin
         slotDuration: '00:30:00', // 30 DAKİKALIK DİLİMLER
