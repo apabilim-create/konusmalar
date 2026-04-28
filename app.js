@@ -415,4 +415,14 @@ window.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         fetchConversations();
     }, 5000);
+
+    // --- TAKVİM OTOMATİK SENKRONİZASYONU ---
+    // Takvim ekranı açıksa her 4 saniyede bir takvim etkinliklerini yeniler.
+    // Bu sayede dışarıdan veya başka cihazdan eklenen randevular anında ekrana düşer.
+    setInterval(() => {
+        // Eğer takvim objesi oluşturulmuşsa ve ekranda randevular sekmesi görünürse yenile
+        if (calendar && !viewRandevular.classList.contains('hidden-view')) {
+            calendar.refetchEvents();
+        }
+    }, 4000);
 });
